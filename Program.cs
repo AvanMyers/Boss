@@ -14,7 +14,6 @@ namespace Boss
 
             int healthPlayer = 150;
             int stamina = 5;
-            Random random = new Random();
             int playerDamage = 0;
             int smashDamage = 0;
             int rageDamageMultiply = 2;
@@ -31,8 +30,14 @@ namespace Boss
             int minSmashDamage = 60;
             int maxSmashDamage = 100;
             int bossRageDamage = bossDamage + takedDamageInRage;
+            int smashRageDamage = smashDamage * rageDamageMultiply;
+            int hitRageDamage = playerDamage * rageDamageMultiply;
+
             string userInput;
-            bool inRage = false;
+
+            Random random = new Random();
+
+            bool isRage = false;
 
             Console.WriteLine("Твоим глазам предстал дракон к которому вы с группой так долго шли, но ты пришел позднее своей команды, дав им больше времени" +
                 "сдерживая врагов, но они проиграли, раненные товарищи лежали не в силах подняться и продолжить бой" +
@@ -53,17 +58,17 @@ namespace Boss
                     case ComandHitBoss:
                         playerDamage = random.Next(minPlayerDamage, maxPlayerDamage);
 
-                        if (inRage)
+                        if (isRage)
                         {
-                            bossHealth -= playerDamage * rageDamageMultiply;
+                            bossHealth -= hitRageDamage;
                             Console.WriteLine($"Не сдерживая свою ярость которая несет твои ноги прямо на врага ты делаешь широкий взмах топора" +
-                                $" прорезая плоть своего недруга нанося {playerDamage * rageDamageMultiply}");
+                                $" прорезая плоть своего недруга нанося {hitRageDamage}");
                             rageDuration--;
 
                             if (rageDuration <= 0)
                             {
                                 Console.WriteLine("Порыв ярости прекращается, ослабляя тебя, но ты вс еще готов сражаться дальше");
-                                inRage = false;
+                                isRage = false;
                             }
                         }
                         else
@@ -74,6 +79,7 @@ namespace Boss
                         }
 
                         break;
+
                     case ComandSmash:
 
                         if (stamina > 0)
@@ -81,17 +87,17 @@ namespace Boss
                             smashDamage = random.Next(minSmashDamage, maxSmashDamage);
                             stamina--;
 
-                            if (inRage)
+                            if (isRage)
                             {
-                                bossHealth -= smashDamage * rageDamageMultiply;
-                                Console.WriteLine($"Ты яростно взмахиваешь своим топором отсекая дракону одну из конечностией, нанося {smashDamage * rageDamageMultiply}" +
+                                bossHealth -= smashRageDamage;
+                                Console.WriteLine($"Ты яростно взмахиваешь своим топором отсекая дракону одну из конечностией, нанося {smashRageDamage}" +
                                     " но ты не можешь определить, что это было, потому что ярость застелает глаза красной пеленой");
                                 rageDuration--;
 
                                 if (rageDuration <= 0)
                                 {
                                     Console.WriteLine("Порыв ярости прекращается, ослабляя тебя, но ты вс еще готов сражаться дальше");
-                                    inRage = false;
+                                    isRage = false;
                                 }
                             }
                             else
@@ -104,23 +110,26 @@ namespace Boss
                         {
                             Console.WriteLine("Недостаточно выносливости");
 
-                            if (inRage)
+                            if (isRage)
                             {
                                 rageDuration--;
 
                                 if (rageDuration <= 0)
                                 {
                                     Console.WriteLine("Порыв ярости прекращается, ослабляя тебя, но ты вс еще готов сражаться дальше");
-                                    inRage = false;
+                                    isRage = false;
                                 }
                             }
                         }
+
                         break;
+
                     case ComandUseRage:
-                        inRage = true;
+                        isRage = true;
                         Console.WriteLine("Пелена застелает твой взор и ты видишь перед собой одну единственную цель, твоего враг, огромного дракона.");
                         rageDuration = rageDurationEffect;
                         break;
+
                     case ComandUsePotion:
 
                         if (potionNumber > 0)
@@ -131,32 +140,36 @@ namespace Boss
                             Console.WriteLine("Почувсвовасть слабюость в теле, ты достаешь одну из припасенных еще с самого начала путешествия склянку выпивая ее" +
                                 ", но то ли из-за неосторожности, то ли по невнимательности коготь дракона все равно настигает тебя, но все старые раны затягиваются на глазах.");
 
-                            if (inRage)
+                            if (isRage)
                             {
                                 rageDuration--;
 
                                 if (rageDuration == 0)
-                                    inRage = false;
+                                    isRage = false;
                             }
+
                         }
                         else if (potionNumber == 0)
                         {
                             Console.WriteLine("Увы зелий больше нет");
                         }
+
                         break;
+
                     default:
                         Console.WriteLine("Ты спотыкаешься о камень и даркон не упускает данного шанса нанося удар хвостом");
 
-                        if (inRage)
+                        if (isRage)
                         {
                             rageDuration--;
 
                             if (rageDuration <= 0)
                             {
                                 Console.WriteLine("Порыв ярости прекращается, ослабляя тебя, но ты вс еще готов сражаться дальше");
-                                inRage = false;
+                                isRage = false;
                             }
                         }
+
                         break;
                 }
 
@@ -168,7 +181,13 @@ namespace Boss
                 Console.WriteLine($"У тебя осталось {healthPlayer} жизненных сил, в то время как у Дракона {bossHealth}");
             }
 
-            if (healthPlayer <= 0)
+            if (healthPlayer <= 0 && bossHealth <= 0)
+            {
+                Console.WriteLine("Ты победил...победил же? Да, ты видишь голову драона лежащую рядом с тобой, но эта боль, ты опускаешь взгляд вниз и видишь как острый шип " +
+                    "драконьего хвоста пронзил твое сердце. И когда твои глаза застелает пелена, ты видишь как к тебе несутся твои товарищи, но они не успеют, ты в этом точно уверен" +
+                    "как хорошо, что они живы, это последняя мысль которая пронисится в твоем затуманенном сознании");
+            }
+            else if (healthPlayer <= 0)
             {
                 Console.WriteLine("Возможно победа и была бляизко но ты больше не увидишь ни яркого солнечного света, ни своих друзей, ни королевства." +
                     "Со падением твоих напарников и тебя палои и все ближайшие королевства, мир захватил страх и смерть," +
@@ -179,12 +198,6 @@ namespace Boss
                 Console.WriteLine("Дракон повержен, ты бросаешь свой топор и бежишь спасать своих друзей, к счастью ты успеваешь и оказываешь им первую помощь, вы спасены," +
                     "Королевство спасено, но на долголи, ведь это был только один из шаов по спасению королевства, впереди еще множество угроз которые передстоит преодлеть" +
                     " и врагов которые которые ждут ощутить на вкус твой топор");
-            }
-            else if (healthPlayer <= 0 && bossHealth <= 0)
-            {
-                Console.WriteLine("Ты победил...победил же? Да, ты видишь голову драона лежащую рядом с тобой, но эта боль, ты опускаешь взгляд вниз и видишь как острый шип " +
-                    "драконьего хвоста пронзил твое сердце. И когда твои глаза застелает пелена, ты видишь как к тебе несутся твои товарищи, но они не успеют, ты в этом точно уверен" +
-                    "как хорошо, что они живы, это последняя мысль которая пронисится в твоем затуманенном сознании");
             }
 
             Console.WriteLine("Вот такой вот конец, спасибо.");
